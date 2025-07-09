@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import API from '../services/api';
+
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // ✅ Import useAuth
 
@@ -16,7 +17,8 @@ export default function Login() {
     setSuccess('');
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', form);
+      const res = await API.post('/api/auth/login', form);
+
 
       // ✅ Save token & user (used in Navbar)
       login(res.data.token, res.data.user); // Make sure your backend sends user info!

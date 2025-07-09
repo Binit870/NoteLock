@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import API from '../services/api';
 import Navbar from '../components/Navbar';
 import  { useAuth } from '../context/AuthContext';
 
@@ -13,7 +13,8 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/notes', {
+        const res = await API.get('/api/notes', {
+
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotes(res.data);
@@ -29,8 +30,9 @@ export default function Dashboard() {
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/notes',
+      const res = await API.post(
+  '/api/notes',
+
         { title: newNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
