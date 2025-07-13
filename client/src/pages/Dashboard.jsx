@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import API from '../services/api';
 import Navbar from '../components/Navbar';
-import  { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
   const { token } = useAuth();
@@ -10,11 +10,11 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [newNote, setNewNote] = useState('');
 
+  // Fetch notes on component mount
   useEffect(() => {
     const fetchNotes = async () => {
       try {
         const res = await API.get('/api/notes', {
-
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotes(res.data);
@@ -27,19 +27,31 @@ export default function Dashboard() {
     fetchNotes();
   }, [token]);
 
+  // Add a new note
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
     try {
       const res = await API.post(
-  '/api/notes',
-
+        '/api/notes',
         { title: newNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNotes([res.data, ...notes]);
       setNewNote('');
     } catch (err) {
-      setError('Failed to add note',err.message);
+      setError('Failed to add note: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  // Delete a note
+  const handleDeleteNote = async (id) => {
+    try {
+      await API.delete(`/api/notes/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotes(notes.filter(note => note._id !== id));
+    } catch (err) {
+      setError('Failed to delete note: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -67,8 +79,12 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {loading && <p className="text-center text-gray-500 animate-pulse">Loading notes...</p>}
-          {error && <p className="text-center text-red-600">{error}</p>}
+          {loading && (
+            <p className="text-center text-gray-500 animate-pulse">Loading notes...</p>
+          )}
+          {error && (
+            <p className="text-center text-red-600">{error}</p>
+          )}
           {!loading && !error && notes.length === 0 && (
             <p className="text-center text-gray-500">You have no notes yet.</p>
           )}
@@ -77,9 +93,15 @@ export default function Dashboard() {
             {notes.map(note => (
               <li
                 key={note._id}
-                className="bg-purple-50 border border-purple-200 p-4 rounded-lg shadow-sm hover:bg-purple-100 transition"
+                className="bg-purple-50 border border-purple-200 p-4 rounded-lg shadow-sm hover:bg-purple-100 transition flex justify-between items-center"
               >
                 <h3 className="font-semibold text-purple-800 text-lg">{note.title}</h3>
+                <button
+                  onClick={() => handleDeleteNote(note._id)}
+                  className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg ml-4"
+                >
+                  Delete
+                </button>
               </li>
             ))}
           </ul>
