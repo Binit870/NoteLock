@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import bgImage from '../assets/note_bg.png'
+import bgImage from '../assets/note_bg.png';
+
 export default function Dashboard() {
   const { token } = useAuth();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newNote, setNewNote] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [editedText, setEditedText] = useState('');
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -51,6 +54,33 @@ export default function Dashboard() {
     }
   };
 
+  const startEdit = (id, currentTitle) => {
+    setEditId(id);
+    setEditedText(currentTitle);
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setEditedText('');
+  };
+
+  const saveEdit = async (id) => {
+    if (!editedText.trim()) return;
+
+    try {
+      const res = await API.put(
+        `/api/notes/${id}`,
+        { title: editedText },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setNotes(notes.map(note => (note._id === id ? res.data : note)));
+      setEditId(null);
+      setEditedText('');
+    } catch (err) {
+      setError('Failed to update note: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
   return (
     <div
       className="min-h-[calc(100vh-150px)] px-4 pt-8"
@@ -88,16 +118,51 @@ export default function Dashboard() {
         <ul className="space-y-3 mt-4">
           {notes.map(note => (
             <li
-              key={note._id}
-              className="bg-purple-50 border border-purple-200 p-4 rounded-lg shadow-sm hover:bg-purple-100 transition flex justify-between items-center"
-            >
-              <h3 className="font-semibold text-purple-800 text-lg">{note.title}</h3>
-              <button
-                onClick={() => handleDeleteNote(note._id)}
-                className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg ml-4"
-              >
-                Delete
-              </button>
+  key={note._id}
+  className="bg-purple-50 border border-purple-300 p-6 sm:p-8 rounded-2xl shadow-md hover:bg-purple-100 transition-all text-lg"
+>
+
+              {editId === note._id ? (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <input
+                    value={editedText}
+                    onChange={(e) => setEditedText(e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-lg"
+                  />
+                  <div className="flex gap-2 mt-2 sm:mt-0">
+                    <button
+                      onClick={() => saveEdit(note._id)}
+                      className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      className="bg-gray-400 text-white px-3 py-1 rounded-lg hover:bg-gray-500"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold text-purple-800 text-lg">{note.title}</h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => startEdit(note._id, note.title)}
+                      className="text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteNote(note._id)}
+                      className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>

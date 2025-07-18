@@ -8,13 +8,42 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const validateToken = async () => {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
 
-    if (storedToken) setToken(storedToken);
-    if (storedUser) setUser(JSON.parse(storedUser));
+      if (!storedToken || !storedUser) {
+        setLoading(false);
+        return;
+      }
 
-    setLoading(false);
+      try {
+        const res = await fetch('/api/auth/check', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+
+        if (!res.ok) throw new Error('Invalid token');
+
+        const data = await res.json();
+
+        if (data.authenticated) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        } else {
+          logout(); // if token invalid
+        }
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        logout(); // on error, log out
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    validateToken();
   }, []);
 
   const login = (newToken, newUser) => {
@@ -33,7 +62,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ token, user, login, logout, loading }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
