@@ -1,6 +1,7 @@
 # 📝 NoteLock
 <br/>
 https://notelock-password.netlify.app/
+<br/>
 A full-stack web application for securely managing and syncing personal notes.
 
 ## 🔧 Tech Stack
