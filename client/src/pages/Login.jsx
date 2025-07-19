@@ -25,7 +25,7 @@ export default function Login() {
 
       setSuccess('✅ Login successful! Redirecting to dashboard...');
 
-      setTimeout(() => navigate('/dashboard'), 2000);
+      setTimeout(() => navigate('/dashboard'), 1000);
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     }
