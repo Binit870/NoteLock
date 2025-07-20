@@ -1,8 +1,11 @@
 import dotenv from 'dotenv';
+// 👇 This is the correct place. It runs before any other app file is imported.
+dotenv.config();
+
 import app from './app.js';
 import connectDB from './config/db.js';
 
-dotenv.config();
+// Now that variables are loaded, we can connect to the database
 connectDB();
 
 const PORT = process.env.PORT || 5000;

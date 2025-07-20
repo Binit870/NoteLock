@@ -2,13 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import bgImage from '../assets/note_bg.png';
+import Chatbot from '../components/Chatbot'; // 👈 1. Import the Chatbot component
 
 export default function Dashboard() {
   const { token } = useAuth();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // State for adding a new note
   const [newNote, setNewNote] = useState('');
 
@@ -16,10 +17,13 @@ export default function Dashboard() {
   const [editId, setEditId] = useState(null);
   const [editedText, setEditedText] = useState('');
 
+  // 👇 2. Add state to manage chatbot visibility
+  const [showChatbot, setShowChatbot] = useState(false);
+
   // Centralized function to fetch notes
   const fetchNotes = useCallback(async () => {
     try {
-      setError(''); // Clear previous errors
+      setError('');
       const res = await API.get('/api/notes', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -37,6 +41,12 @@ export default function Dashboard() {
     }
   }, [token, fetchNotes]);
 
+  // 👇 3. Create a handler to receive content from the chatbot
+  const handleSaveFromChatbot = (content) => {
+    setNewNote(content); // Pre-fill the input field
+    setShowChatbot(false); // Close the chatbot window
+  };
+
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
     try {
@@ -46,7 +56,7 @@ export default function Dashboard() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNewNote('');
-      fetchNotes(); // Refetch notes to get the latest list
+      fetchNotes();
     } catch (err) {
       setError('Failed to add note: ' + (err.response?.data?.message || err.message));
     }
@@ -57,7 +67,7 @@ export default function Dashboard() {
       await API.delete(`/api/notes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchNotes(); // Refetch notes to update the list
+      fetchNotes();
     } catch (err) {
       setError('Failed to delete note: ' + (err.response?.data?.message || err.message));
     }
@@ -83,7 +93,7 @@ export default function Dashboard() {
       );
       setEditId(null);
       setEditedText('');
-      fetchNotes(); // Refetch notes to show the update
+      fetchNotes();
     } catch (err) {
       setError('Failed to update note: ' + (err.response?.data?.message || err.message));
     }
@@ -174,6 +184,17 @@ export default function Dashboard() {
           ))}
         </ul>
       </div>
+
+      {/* 👇 4. Add the Chatbot UI to the page */}
+      <button
+        onClick={() => setShowChatbot(!showChatbot)}
+        className="fixed bottom-6 right-6 bg-purple-700 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl hover:bg-purple-800 transition-transform transform hover:scale-110"
+        aria-label="Toggle Chatbot"
+      >
+        🤖
+      </button>
+
+      {showChatbot && <Chatbot onSaveNote={handleSaveFromChatbot} />}
     </div>
   );
 }

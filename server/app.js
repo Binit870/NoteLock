@@ -1,12 +1,11 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
+// Correct content for app.js
 
+import express from 'express';
+import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import noteRoutes from './routes/noteRoutes.js';
 import tokenRoutes from './routes/tokenRoutes.js';
-
-dotenv.config();
+import aiRoutes from './routes/aiRoutes.js';
 
 const app = express();
 
@@ -23,7 +22,8 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/notes', noteRoutes);
-app.use('/api', tokenRoutes); // for /api/verify-token
+app.use('/api', tokenRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.all('*', (req, res) => {
   res.status(404).json({ message: `Can't find ${req.originalUrl} on this server.` });
