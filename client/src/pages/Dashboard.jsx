@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import bgImage from '../assets/note_bg.png';
-import Chatbot from '../components/Chatbot'; // 👈 1. Import the Chatbot component
+import Chatbot from '../components/Chatbot';
 
 export default function Dashboard() {
   const { token } = useAuth();
@@ -17,7 +17,7 @@ export default function Dashboard() {
   const [editId, setEditId] = useState(null);
   const [editedText, setEditedText] = useState('');
 
-  // 👇 2. Add state to manage chatbot visibility
+  // State to manage chatbot visibility
   const [showChatbot, setShowChatbot] = useState(false);
 
   // Centralized function to fetch notes
@@ -41,7 +41,7 @@ export default function Dashboard() {
     }
   }, [token, fetchNotes]);
 
-  // 👇 3. Create a handler to receive content from the chatbot
+  // Handler to receive content from the chatbot
   const handleSaveFromChatbot = (content) => {
     setNewNote(content); // Pre-fill the input field
     setShowChatbot(false); // Close the chatbot window
@@ -101,7 +101,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className="min-h-[calc(100vh-150px)] px-4 pt-8"
+      className="relative min-h-[calc(100vh-150px)] px-4 pt-8" // Added relative for positioning context if needed
       style={{
         backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
@@ -185,16 +185,21 @@ export default function Dashboard() {
         </ul>
       </div>
 
-      {/* 👇 4. Add the Chatbot UI to the page */}
+      {/* --- Chatbot Integration --- */}
       <button
-        onClick={() => setShowChatbot(!showChatbot)}
-        className="fixed bottom-6 right-6 bg-purple-700 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl hover:bg-purple-800 transition-transform transform hover:scale-110"
+        onClick={() => setShowChatbot(prev => !prev)}
+        className="fixed bottom-6 right-6 bg-purple-700 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl z-40 hover:bg-purple-800 transition-transform transform hover:scale-110"
         aria-label="Toggle Chatbot"
       >
-        🤖
+        {showChatbot ? '✕' : '🤖'}
       </button>
 
-      {showChatbot && <Chatbot onSaveNote={handleSaveFromChatbot} />}
+      {showChatbot && (
+        <Chatbot
+          onSaveNote={handleSaveFromChatbot}
+          onClose={() => setShowChatbot(false)}
+        />
+      )}
     </div>
   );
 }
