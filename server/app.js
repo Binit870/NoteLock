@@ -7,6 +7,7 @@ import noteRoutes from './routes/noteRoutes.js';
 import tokenRoutes from './routes/tokenRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 
+
 const app = express();
 
 const allowedOrigins = [

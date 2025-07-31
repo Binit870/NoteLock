@@ -1,44 +1,53 @@
 // controllers/aiController.js
-import { OpenAI } from 'openai';
-import asyncHandler from 'express-async-handler';
 
-// Initialize OpenAI with your API key from .env
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import dotenv from "dotenv";
+dotenv.config();
 
-// Controller to generate note content
-const generateNoteContent = asyncHandler(async (req, res) => {
-  const { prompt } = req.body;
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-  if (!prompt) {
-    res.status(400);
-    throw new Error('Prompt is required');
-  }
+// Initialize Gemini API client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Function 1: Generate Note Content (for /generate-note route)
+export const generateNoteContent = async (req, res) => {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful assistant. Based on the user's request, generate a concise, well-structured note. Use markdown for formatting if appropriate."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-    });
+    const { prompt } = req.body;
 
-    const noteContent = completion.choices[0].message.content;
-    res.status(200).json({ content: noteContent.trim() });
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt is required" });
+    }
 
-  } catch (error) {
-    console.error('Error with OpenAI API:', error);
-    res.status(500);
-    throw new Error('Failed to generate note from AI service.');
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    res.json({ response: text });
+  } catch (err) {
+    console.error("Gemini Error in generateNoteContent:", err);
+    res.status(500).json({ error: "Failed to generate note content from Gemini" });
   }
-});
+};
 
-export { generateNoteContent };
+// Function 2: Alternative Gemini Route (for /ai/gemini)
+export const generateFromGemini = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt is required" });
+    }
+
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    res.json({ response: text });
+  } catch (err) {
+    console.error("Gemini Error in generateFromGemini:", err);
+    res.status(500).json({ error: "Failed to generate content from Gemini" });
+  }
+};
