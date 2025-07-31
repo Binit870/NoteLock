@@ -17,7 +17,8 @@ export const generateNoteContent = async (req, res) => {
       return res.status(400).json({ error: "Prompt is required" });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Use a current, available model name
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
